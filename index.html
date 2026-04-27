@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignSpeak</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0b10;--bg2:#13131c;--bg3:#1c1c28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --green:#6effa8;--blue:#4fc8ff;--pink:#ff7eb3;--amber:#ffcc66;
+  --text:#eeeef5;--text2:#7777aa;--text3:#44445a;
+  --font-ui:'DM Mono',monospace;--font-head:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── Header ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:var(--font-head);font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+.logo em{color:var(--green);font-style:normal;}
+.pills{display:flex;gap:8px;align-items:center;}
+.pill{font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg2);display:flex;align-items:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s,box-shadow .3s;}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
+.dot.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+
+/* ── Main layout ── */
+.layout{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden;}
+
+/* ── Camera side ── */
+.cam-side{display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.video-wrap{position:relative;flex:1;background:#000;overflow:hidden;}
+video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);opacity:0;transition:opacity .5s;}
+video.on{opacity:1;}
+canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);}
+
+/* start screen */
+.start-screen{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:10;transition:opacity .4s;}
+.start-screen.gone{opacity:0;pointer-events:none;}
+.start-icon{font-size:44px;line-height:1;}
+.start-h{font-family:var(--font-head);font-size:24px;font-weight:800;color:var(--text);}
+.start-p{font-size:12px;color:var(--text2);text-align:center;max-width:260px;line-height:1.7;}
+.start-btn{padding:11px 30px;background:var(--green);color:#000;border:none;border-radius:6px;font-family:var(--font-ui);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.start-btn:hover{opacity:.82;}
+
+/* detection strip */
+.det-strip{display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid var(--border);background:var(--bg2);min-height:70px;flex-shrink:0;}
+.big-letter{font-family:var(--font-head);font-size:42px;font-weight:800;color:var(--green);width:52px;text-align:center;line-height:1;transition:color .2s;}
+.big-letter.word{color:var(--blue);font-size:22px;}
+.big-letter.none{color:var(--text3);}
+.sep{width:1px;height:40px;background:var(--border2);flex-shrink:0;}
+.det-info{flex:1;min-width:0;}
+.det-label{font-size:13px;color:var(--text);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hold-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.hold-bar{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .05s linear;}
+.det-sub{font-size:10px;color:var(--text3);margin-top:4px;}
+/* curl meters */
+.curls{display:flex;gap:6px;align-items:center;}
+.curl-col{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.curl-track{width:10px;height:36px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
+.curl-fill{width:100%;background:var(--green);border-radius:3px;transition:height .1s;}
+.curl-label{font-size:8px;color:var(--text3);}
+
+/* ── Right panel ── */
+.right{display:flex;flex-direction:column;overflow:hidden;}
+
+.word-box{padding:16px 18px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.sec-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.word-display{font-family:var(--font-head);font-size:30px;font-weight:800;color:var(--green);min-height:38px;letter-spacing:3px;word-break:break-all;}
+.word-display.empty{color:var(--text3);font-size:16px;font-weight:400;letter-spacing:1px;}
+.word-btns{display:flex;gap:6px;margin-top:10px;}
+.wbtn{flex:1;padding:7px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:11px;cursor:pointer;transition:all .14s;}
+.wbtn:hover{background:var(--bg3);color:var(--text);}
+.wbtn.hi{border-color:rgba(110,255,168,.3);color:var(--green);}
+.wbtn.hi:hover{background:rgba(110,255,168,.07);}
+
+.sent-box{flex:1;padding:16px 18px;display:flex;flex-direction:column;border-bottom:1px solid var(--border);overflow:hidden;}
+.sentence{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:var(--font-head);font-size:15px;font-weight:700;line-height:1.7;color:var(--text);overflow-y:auto;word-break:break-word;}
+.sentence:empty::before{content:'Your sentence appears here…';color:var(--text3);font-family:var(--font-ui);font-size:12px;font-weight:400;}
+.sent-btns{display:flex;gap:6px;margin-top:10px;}
+.speak-btn{flex:2;padding:9px;background:var(--green);border:none;border-radius:6px;color:#000;font-family:var(--font-ui);font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.speak-btn:hover{opacity:.82;}
+.speak-btn:disabled{opacity:.3;cursor:not-allowed;}
+.clr-btn{flex:1;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:var(--font-ui);font-size:12px;cursor:pointer;transition:all .14s;}
+.clr-btn:hover{background:var(--bg3);color:var(--text);}
+
+/* backend status */
+.api-box{padding:12px 18px;border-bottom:1px solid var(--border);}
+.api-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.api-url{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:5px 9px;color:var(--text2);font-family:var(--font-ui);font-size:11px;outline:none;}
+.api-url:focus{border-color:var(--green);}
+.api-test{padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:var(--font-ui);font-size:11px;cursor:pointer;transition:all .14s;white-space:nowrap;}
+.api-test:hover{background:var(--bg3);color:var(--text);}
+.api-status{font-size:10px;color:var(--text3);margin-top:5px;}
+
+/* ref grid */
+.ref-box{padding:12px 18px;overflow-y:auto;flex:1;}
+.ref-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;}
+.rc{aspect-ratio:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;font-family:var(--font-head);}
+.rc.lit{border-color:var(--green);background:rgba(110,255,168,.08);color:var(--green);}
+.rc.word-lit{border-color:var(--blue);background:rgba(79,200,255,.08);color:var(--blue);}
+
+/* toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 18px;font-size:12px;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* new word flash */
+@keyframes wflash{from{color:var(--blue)}to{color:var(--text)}}
+.new-word{animation:wflash .6s forwards;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Sign<em>Speak</em></div>
+  <div class="pills">
+    <div class="pill"><div class="dot" id="camDot"></div><span id="camTxt">Camera off</span></div>
+    <div class="pill"><div class="dot" id="apiDot"></div><span id="apiTxt">Backend —</span></div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Camera side -->
+  <div class="cam-side">
+    <div class="video-wrap">
+      <video id="video" playsinline autoplay muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="start-screen" id="startScreen">
+        <div class="start-icon">✋</div>
+        <div class="start-h">SignSpeak</div>
+        <div class="start-p">MediaPipe tracks your hand landmarks and sends them to the FastAPI backend — no video, just 21 dots.</div>
+        <button class="start-btn" onclick="startCamera()">Enable Camera</button>
+      </div>
+    </div>
+
+    <!-- Detection strip with curl meters -->
+    <div class="det-strip">
+      <div class="big-letter none" id="bigLetter">—</div>
+      <div class="sep"></div>
+      <div class="det-info">
+        <div class="det-label" id="detLabel">No hand detected</div>
+        <div class="hold-track"><div class="hold-bar" id="holdBar"></div></div>
+        <div class="det-sub" id="detSub">Hold gesture still for 1 sec to confirm</div>
+      </div>
+      <!-- Live curl meters -->
+      <div class="curls" id="curlMeters">
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf0" style="height:0%"></div></div><div class="curl-label">I</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf1" style="height:0%"></div></div><div class="curl-label">M</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf2" style="height:0%"></div></div><div class="curl-label">R</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf3" style="height:0%"></div></div><div class="curl-label">P</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf4" style="height:0%;background:var(--amber)"></div></div><div class="curl-label">T</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right">
+
+    <!-- Backend URL config -->
+    <div class="api-box">
+      <div class="api-row">
+        <input class="api-url" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000"/>
+        <button class="api-test" onclick="testBackend()">Test</button>
+      </div>
+      <div class="api-status" id="apiStatus">Not connected — run: uvicorn main:app --reload --port 8000</div>
+    </div>
+
+    <!-- Word builder -->
+    <div class="word-box">
+      <div class="sec-label">Current word</div>
+      <div class="word-display empty" id="wordDisplay">Spell with gestures…</div>
+      <div class="word-btns">
+        <button class="wbtn hi" onclick="confirmWord()">Add word →</button>
+        <button class="wbtn" onclick="backspace()">⌫</button>
+        <button class="wbtn" onclick="clearWord()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Sentence -->
+    <div class="sent-box">
+      <div class="sec-label">Sentence</div>
+      <div class="sentence" id="sentence"></div>
+      <div class="sent-btns">
+        <button class="speak-btn" id="speakBtn" onclick="speak()" disabled>▶ Speak</button>
+        <button class="clr-btn" onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+
+    <!-- ASL reference -->
+    <div class="ref-box">
+      <div class="sec-label" style="margin-bottom:8px;">ASL reference</div>
+      <div class="ref-grid" id="refGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const HOLD_MS = 1000;
+let letterBuf = [], sentWords = [];
+let curSign = null, holdStart = null, holdDone = false, lastConfirmed = null;
+let mpHands = null, mpCamera = null;
+let frameTimer = null;       // throttle backend calls to ~10fps
+let backendOk = false;
+
+function apiBase(){ return document.getElementById('apiUrl').value.replace(/\/$/,''); }
+
+// ── Build reference grid ──────────────────────────────────────────────────────
+const refGrid = document.getElementById('refGrid');
+'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l => {
+  const d = document.createElement('div');
+  d.className = 'rc'; d.id = 'rc-'+l; d.textContent = l;
+  refGrid.appendChild(d);
+});
+
+// ── Backend ───────────────────────────────────────────────────────────────────
+async function testBackend(){
+  setApi('…','warn');
+  document.getElementById('apiStatus').textContent = 'Testing…';
+  try {
+    const r = await fetch(apiBase()+'/health', {signal: AbortSignal.timeout(3000)});
+    const d = await r.json();
+    backendOk = true;
+    setApi('Backend connected','on');
+    document.getElementById('apiStatus').textContent = 'Connected · '+d.model;
+    toast('Backend OK ✓');
+  } catch(e) {
+    backendOk = false;
+    setApi('Backend offline','');
+    document.getElementById('apiStatus').textContent = 'Cannot reach backend — is uvicorn running?';
+    toast('Backend unreachable');
+  }
+}
+
+async function classifyLandmarks(landmarks){
+  if (!backendOk) return null;
+  try {
+    const res = await fetch(apiBase()+'/classify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        landmarks: landmarks.map(l => ({x:l.x, y:l.y, z:l.z})),
+        handedness: 'Right'
+      }),
+      signal: AbortSignal.timeout(500)
+    });
+    return await res.json();
+  } catch(e){ return null; }
+}
+
+// ── Camera + MediaPipe ────────────────────────────────────────────────────────
+async function startCamera(){
+  document.getElementById('startScreen').classList.add('gone');
+  setStatus('cam','Initializing…','warn');
+  try {
+    mpHands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+    mpHands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.7, minTrackingConfidence:0.6 });
+    mpHands.onResults(onFrame);
+
+    const video = document.getElementById('video');
+    mpCamera = new Camera(video, {
+      onFrame: async () => { await mpHands.send({ image: video }); },
+      width:640, height:480
+    });
+    await mpCamera.start();
+    video.classList.add('on');
+    setStatus('cam','Camera active','on');
+
+    // auto-test backend
+    await testBackend();
+
+    // size overlay
+    const ov = document.getElementById('overlay');
+    ov.width = 640; ov.height = 480;
+    ov.style.width='100%'; ov.style.height='100%';
+  } catch(e){
+    document.getElementById('startScreen').classList.remove('gone');
+    toast('Camera error: '+e.message);
+  }
+}
+
+// ── Per-frame handler ─────────────────────────────────────────────────────────
+let pendingClassify = false;
+
+function onFrame(results){
+  const canvas = document.getElementById('overlay');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if (!results.multiHandLandmarks?.length){
+    resetHold();
+    updateDet(null);
+    clearCurls();
+    return;
+  }
+
+  const lms = results.multiHandLandmarks[0];
+
+  // ── Draw landmarks (like the screenshot) ──────────────────────────────────
+  // Connections in pale green
+  drawConnectors(ctx, lms, HAND_CONNECTIONS, { color:'rgba(110,255,168,0.4)', lineWidth:2 });
+
+  // Joints: white circles, fingertips bigger + brighter
+  const TIPS = new Set([4,8,12,16,20]);
+  lms.forEach((pt, i) => {
+    const x = pt.x * canvas.width;
+    const y = pt.y * canvas.height;
+    ctx.beginPath();
+    ctx.arc(x, y, TIPS.has(i) ? 7 : 5, 0, Math.PI*2);
+    ctx.fillStyle = TIPS.has(i) ? '#6effa8' : 'rgba(110,255,168,0.75)';
+    ctx.fill();
+    // thin white border
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  });
+
+  // ── Send to backend every ~100ms (10fps) ──────────────────────────────────
+  if (!pendingClassify){
+    pendingClassify = true;
+    classifyLandmarks(lms).then(result => {
+      pendingClassify = false;
+      if (!result) { updateDet(null); clearCurls(); return; }
+      updateCurls(result.finger_curls, result.thumb_out);
+      updateDet(result);
+      if (result.confidence > 0) processHold(result);
+      else resetHold();
+    });
+  }
+}
+
+// ── Hold logic ────────────────────────────────────────────────────────────────
+function processHold(result){
+  const sign = result.sign;
+  if (sign === lastConfirmed){ resetHold(); return; }
+  if (curSign !== sign){ curSign = sign; holdStart = Date.now(); holdDone = false; }
+  if (!holdDone){
+    const pct = Math.min(100, ((Date.now()-holdStart)/HOLD_MS)*100);
+    document.getElementById('holdBar').style.width = pct+'%';
+    if (pct >= 100){ holdDone = true; confirmSign(result); }
+  }
+}
+
+function resetHold(){
+  curSign = null; holdStart = null; holdDone = false;
+  document.getElementById('holdBar').style.width='0%';
+}
+
+function confirmSign(result){
+  lastConfirmed = result.sign;
+  setTimeout(()=>{ lastConfirmed = null; }, 1500);
+  document.getElementById('holdBar').style.width='0%';
+
+  if (result.is_word){
+    addWord(result.sign);
+    flashRef('rc-'+result.sign.replace(/\s/g,'-'), true);
+    toast('Word: '+result.sign);
+  } else {
+    letterBuf.push(result.sign);
+    renderWord();
+    flashRef('rc-'+result.sign, false);
+    toast('Letter: '+result.sign);
+  }
+}
+
+// ── UI updaters ───────────────────────────────────────────────────────────────
+function updateDet(result){
+  const el = document.getElementById('bigLetter');
+  const lbl = document.getElementById('detLabel');
+  const sub = document.getElementById('detSub');
+  if (!result){
+    el.textContent='—'; el.className='big-letter none';
+    lbl.textContent='No hand detected';
+    sub.textContent='Show your hand to the camera';
+    return;
+  }
+  if (result.sign==='?'){
+    el.textContent='?'; el.className='big-letter none';
+    lbl.textContent=result.hint;
+    sub.textContent='Try a clear ASL shape';
+    return;
+  }
+  el.className = result.is_word ? 'big-letter word' : 'big-letter';
+  el.textContent = result.is_word ? result.sign.split(' ')[0] : result.sign;
+  lbl.textContent = result.hint;
+  sub.textContent = `Confidence ${result.confidence}% · Hold 1 sec to confirm`;
+}
+
+function updateCurls(curls, thumbOut){
+  curls.forEach((v, i) => {
+    document.getElementById('cf'+i).style.height = Math.round(v*100)+'%';
+  });
+  document.getElementById('cf4').style.height = thumbOut ? '20%' : '80%';
+}
+
+function clearCurls(){
+  [0,1,2,3,4].forEach(i => document.getElementById('cf'+i).style.height='0%');
+}
+
+function flashRef(id, isWord){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add(isWord ? 'word-lit' : 'lit');
+  setTimeout(() => el.classList.remove('lit','word-lit'), 700);
+}
+
+// ── Word / sentence builders ──────────────────────────────────────────────────
+function renderWord(){
+  const el = document.getElementById('wordDisplay');
+  if (!letterBuf.length){ el.textContent='Spell with gestures…'; el.className='word-display empty'; }
+  else { el.textContent=letterBuf.join(''); el.className='word-display'; }
+}
+
+function confirmWord(){
+  if (!letterBuf.length) return;
+  addWord(letterBuf.join(''));
+  letterBuf=[]; renderWord();
+}
+
+function backspace(){ letterBuf.pop(); renderWord(); }
+function clearWord(){ letterBuf=[]; renderWord(); }
+
+function addWord(word){
+  sentWords.push(word);
+  const sent = document.getElementById('sentence');
+  const span = document.createElement('span');
+  span.className='new-word';
+  span.textContent=(sent.textContent?' ':'')+word;
+  sent.appendChild(span);
+  document.getElementById('speakBtn').disabled=false;
+}
+
+function clearAll(){
+  sentWords=[]; letterBuf=[];
+  renderWord();
+  document.getElementById('sentence').textContent='';
+  document.getElementById('speakBtn').disabled=true;
+}
+
+function speak(){
+  const text=sentWords.join(' ');
+  if (!text) return;
+  if ('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.88; u.pitch=1.05;
+    speechSynthesis.speak(u);
+    toast('Speaking: "'+text+'"');
+  }
+}
+
+// ── Status helpers ────────────────────────────────────────────────────────────
+function setStatus(which, text, state){
+  if (which==='cam'){
+    document.getElementById('camDot').className='dot '+(state||'');
+    document.getElementById('camTxt').textContent=text;
+  }
+}
+function setApi(text, state){
+  document.getElementById('apiDot').className='dot '+(state||'');
+  document.getElementById('apiTxt').textContent=text;
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>
