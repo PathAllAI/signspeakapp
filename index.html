@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SignSpeak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0b0b10;--bg2:#13131c;--bg3:#1c1c28;
@@ -13,102 +14,228 @@
   --green:#6effa8;--blue:#4fc8ff;--pink:#ff7eb3;--amber:#ffcc66;
   --text:#eeeef5;--text2:#7777aa;--text3:#44445a;
   --font-ui:'DM Mono',monospace;--font-head:'Syne',sans-serif;
+  --header-h:52px;
+  --panel-h:300px;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font-ui);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-ui);}
 
 /* ── Header ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.logo{font-family:var(--font-head);font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:var(--header-h);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  position:relative;z-index:10;background:var(--bg);
+}
+.logo{font-family:var(--font-head);font-size:17px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;}
 .logo em{color:var(--green);font-style:normal;}
-.pills{display:flex;gap:8px;align-items:center;}
-.pill{font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg2);display:flex;align-items:center;gap:5px;}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s,box-shadow .3s;}
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.pill{font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg2);display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s,box-shadow .3s;flex-shrink:0;}
 .dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
 .dot.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.dot.motion{background:var(--pink);box-shadow:0 0 6px var(--pink);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* ── Main layout ── */
-.layout{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden;}
+/* ── Root layout: desktop side-by-side, mobile stacked ── */
+.app{
+  display:flex;flex-direction:column;
+  height:calc(100vh - var(--header-h));
+  overflow:hidden;
+}
+
+/* Desktop: side by side */
+@media(min-width:768px){
+  .app{flex-direction:row;}
+  .cam-side{flex:1;border-right:1px solid var(--border);min-width:0;}
+  .right{width:320px;flex-shrink:0;}
+}
 
 /* ── Camera side ── */
-.cam-side{display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.cam-side{display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+/* Mobile: camera takes fixed height */
+@media(max-width:767px){
+  .cam-side{flex-shrink:0;height:42vw;min-height:180px;max-height:280px;}
+}
+
 .video-wrap{position:relative;flex:1;background:#000;overflow:hidden;}
 video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);opacity:0;transition:opacity .5s;}
 video.on{opacity:1;}
 canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);}
 
-/* start screen */
-.start-screen{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:10;transition:opacity .4s;}
+.start-screen{
+  position:absolute;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;z-index:10;transition:opacity .4s;padding:20px;
+}
 .start-screen.gone{opacity:0;pointer-events:none;}
-.start-icon{font-size:44px;line-height:1;}
-.start-h{font-family:var(--font-head);font-size:24px;font-weight:800;color:var(--text);}
-.start-p{font-size:12px;color:var(--text2);text-align:center;max-width:260px;line-height:1.7;}
-.start-btn{padding:11px 30px;background:var(--green);color:#000;border:none;border-radius:6px;font-family:var(--font-ui);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.start-icon{font-size:36px;}
+.start-h{font-family:var(--font-head);font-size:20px;font-weight:800;text-align:center;}
+.start-p{font-size:11px;color:var(--text2);text-align:center;max-width:280px;line-height:1.8;}
+.start-btn{
+  padding:10px 28px;background:var(--green);color:#000;border:none;
+  border-radius:6px;font-family:var(--font-ui);font-size:13px;font-weight:500;
+  cursor:pointer;transition:opacity .15s;touch-action:manipulation;
+}
 .start-btn:hover{opacity:.82;}
+.start-btn:active{opacity:.7;}
 
-/* detection strip */
-.det-strip{display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid var(--border);background:var(--bg2);min-height:70px;flex-shrink:0;}
-.big-letter{font-family:var(--font-head);font-size:42px;font-weight:800;color:var(--green);width:52px;text-align:center;line-height:1;transition:color .2s;}
-.big-letter.word{color:var(--blue);font-size:22px;}
+/* ── Detection strip ── */
+.det-strip{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-top:1px solid var(--border);
+  background:var(--bg2);flex-shrink:0;min-height:60px;
+}
+.big-letter{font-family:var(--font-head);font-size:36px;font-weight:800;color:var(--green);width:46px;text-align:center;line-height:1;transition:color .15s,transform .1s;flex-shrink:0;}
+.big-letter.pop{transform:scale(1.25);}
+.big-letter.word{color:var(--blue);font-size:18px;}
+.big-letter.motion{color:var(--pink);}
 .big-letter.none{color:var(--text3);}
-.sep{width:1px;height:40px;background:var(--border2);flex-shrink:0;}
+.sep{width:1px;height:34px;background:var(--border2);flex-shrink:0;}
 .det-info{flex:1;min-width:0;}
-.det-label{font-size:13px;color:var(--text);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.det-label{font-size:11px;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .hold-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .hold-bar{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .05s linear;}
-.det-sub{font-size:10px;color:var(--text3);margin-top:4px;}
-/* curl meters */
-.curls{display:flex;gap:6px;align-items:center;}
+.det-sub{font-size:9px;color:var(--text3);margin-top:3px;}
+.curls{display:flex;gap:4px;align-items:flex-end;flex-shrink:0;}
 .curl-col{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.curl-track{width:10px;height:36px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
-.curl-fill{width:100%;background:var(--green);border-radius:3px;transition:height .1s;}
-.curl-label{font-size:8px;color:var(--text3);}
+.curl-track{width:8px;height:30px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
+.curl-fill{width:100%;border-radius:3px;transition:height .1s;}
+.curl-lbl{font-size:7px;color:var(--text3);}
+.model-badge{font-size:8px;padding:2px 6px;border-radius:10px;border:1px solid var(--border2);color:var(--text3);flex-shrink:0;}
+.model-badge.ml{border-color:rgba(110,255,168,.4);color:var(--green);}
+.model-badge.motion{border-color:rgba(255,126,179,.4);color:var(--pink);}
+.model-badge.rules{border-color:rgba(255,204,102,.4);color:var(--amber);}
+
+/* Hide curl meters on very small screens */
+@media(max-width:380px){.curls{display:none;}}
 
 /* ── Right panel ── */
-.right{display:flex;flex-direction:column;overflow:hidden;}
+.right{
+  display:flex;flex-direction:column;
+  overflow:hidden;background:var(--bg);
+}
 
-.word-box{padding:16px 18px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.sec-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-.word-display{font-family:var(--font-head);font-size:30px;font-weight:800;color:var(--green);min-height:38px;letter-spacing:3px;word-break:break-all;}
-.word-display.empty{color:var(--text3);font-size:16px;font-weight:400;letter-spacing:1px;}
-.word-btns{display:flex;gap:6px;margin-top:10px;}
-.wbtn{flex:1;padding:7px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:11px;cursor:pointer;transition:all .14s;}
-.wbtn:hover{background:var(--bg3);color:var(--text);}
-.wbtn.hi{border-color:rgba(110,255,168,.3);color:var(--green);}
-.wbtn.hi:hover{background:rgba(110,255,168,.07);}
+/* Mobile: right panel scrolls */
+@media(max-width:767px){
+  .right{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+}
 
-.sent-box{flex:1;padding:16px 18px;display:flex;flex-direction:column;border-bottom:1px solid var(--border);overflow:hidden;}
-.sentence{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:var(--font-head);font-size:15px;font-weight:700;line-height:1.7;color:var(--text);overflow-y:auto;word-break:break-word;}
-.sentence:empty::before{content:'Your sentence appears here…';color:var(--text3);font-family:var(--font-ui);font-size:12px;font-weight:400;}
-.sent-btns{display:flex;gap:6px;margin-top:10px;}
-.speak-btn{flex:2;padding:9px;background:var(--green);border:none;border-radius:6px;color:#000;font-family:var(--font-ui);font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s;}
-.speak-btn:hover{opacity:.82;}
-.speak-btn:disabled{opacity:.3;cursor:not-allowed;}
-.clr-btn{flex:1;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:var(--font-ui);font-size:12px;cursor:pointer;transition:all .14s;}
-.clr-btn:hover{background:var(--bg3);color:var(--text);}
+/* Desktop: right panel fills remaining height with internal scroll */
+@media(min-width:768px){
+  .right{overflow-y:auto;}
+}
 
-/* backend status */
-.api-box{padding:12px 18px;border-bottom:1px solid var(--border);}
-.api-row{display:flex;align-items:center;gap:8px;font-size:11px;}
-.api-url{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:5px 9px;color:var(--text2);font-family:var(--font-ui);font-size:11px;outline:none;}
+/* ── Settings box ── */
+.settings-box{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.api-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.api-url{
+  flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:5px;
+  padding:6px 8px;color:var(--text2);font-family:var(--font-ui);font-size:11px;outline:none;
+  min-width:0;
+}
 .api-url:focus{border-color:var(--green);}
-.api-test{padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:var(--font-ui);font-size:11px;cursor:pointer;transition:all .14s;white-space:nowrap;}
+.api-test{
+  padding:6px 10px;background:transparent;border:1px solid var(--border2);
+  border-radius:5px;color:var(--text2);font-family:var(--font-ui);font-size:11px;
+  cursor:pointer;transition:all .14s;white-space:nowrap;touch-action:manipulation;
+  flex-shrink:0;
+}
 .api-test:hover{background:var(--bg3);color:var(--text);}
-.api-status{font-size:10px;color:var(--text3);margin-top:5px;}
+.api-test:active{background:var(--bg3);}
+.api-status{font-size:10px;color:var(--text3);margin-bottom:7px;}
 
-/* ref grid */
-.ref-box{padding:12px 18px;overflow-y:auto;flex:1;}
-.ref-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;}
-.rc{aspect-ratio:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;font-family:var(--font-head);}
-.rc.lit{border-color:var(--green);background:rgba(110,255,168,.08);color:var(--green);}
-.rc.word-lit{border-color:var(--blue);background:rgba(79,200,255,.08);color:var(--blue);}
+.slider-row{display:flex;align-items:center;gap:8px;}
+.slider-lbl{font-size:10px;color:var(--text2);white-space:nowrap;}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--green);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--green);cursor:pointer;border:none;}
+.slider-val{font-size:10px;color:var(--green);min-width:28px;text-align:right;}
 
-/* toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 18px;font-size:12px;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;pointer-events:none;}
+.toggle-row{display:flex;gap:6px;margin-top:8px;}
+.toggle-btn{
+  flex:1;padding:7px 6px;background:transparent;border:1px solid var(--border2);
+  border-radius:5px;color:var(--text2);font-family:var(--font-ui);font-size:10px;
+  cursor:pointer;transition:all .14s;text-align:center;touch-action:manipulation;
+}
+.toggle-btn:hover{background:var(--bg3);color:var(--text);}
+.toggle-btn:active{background:var(--bg3);}
+.toggle-btn.on{border-color:rgba(110,255,168,.4);color:var(--green);background:rgba(110,255,168,.05);}
+
+/* ── Word builder ── */
+.word-box{padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.sec-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.word-display{font-family:var(--font-head);font-size:26px;font-weight:800;color:var(--green);min-height:34px;letter-spacing:3px;word-break:break-all;}
+.word-display.empty{color:var(--text3);font-size:14px;font-weight:400;letter-spacing:1px;}
+.word-btns{display:flex;gap:6px;margin-top:8px;}
+.wbtn{
+  flex:1;padding:8px 6px;border:1px solid var(--border2);border-radius:5px;
+  background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:11px;
+  cursor:pointer;transition:all .14s;touch-action:manipulation;
+}
+.wbtn:hover{background:var(--bg3);color:var(--text);}
+.wbtn:active{background:var(--bg3);}
+.wbtn.hi{border-color:rgba(110,255,168,.3);color:var(--green);}
+.wbtn.hi:hover,.wbtn.hi:active{background:rgba(110,255,168,.07);}
+
+/* ── Sentence ── */
+.sent-box{
+  padding:12px 14px;display:flex;flex-direction:column;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+@media(min-width:768px){
+  .sent-box{flex:1;overflow:hidden;}
+}
+.sentence{
+  background:var(--bg);border:1px solid var(--border);border-radius:7px;
+  padding:10px;font-family:var(--font-head);font-size:14px;font-weight:700;
+  line-height:1.7;color:var(--text);overflow-y:auto;word-break:break-word;
+  min-height:60px;
+}
+@media(min-width:768px){.sentence{flex:1;}}
+.sentence:empty::before{content:'Your sentence appears here…';color:var(--text3);font-family:var(--font-ui);font-size:12px;font-weight:400;}
+.sent-btns{display:flex;gap:6px;margin-top:8px;}
+.speak-btn{
+  flex:2;padding:10px;background:var(--green);border:none;border-radius:6px;
+  color:#000;font-family:var(--font-ui);font-size:12px;font-weight:500;
+  cursor:pointer;transition:opacity .15s;touch-action:manipulation;
+}
+.speak-btn:hover{opacity:.82;}
+.speak-btn:active{opacity:.7;}
+.speak-btn:disabled{opacity:.3;cursor:not-allowed;}
+.clr-btn{
+  flex:1;padding:10px;background:transparent;border:1px solid var(--border2);
+  border-radius:6px;color:var(--text2);font-family:var(--font-ui);font-size:12px;
+  cursor:pointer;transition:all .14s;touch-action:manipulation;
+}
+.clr-btn:hover,.clr-btn:active{background:var(--bg3);color:var(--text);}
+
+/* ── ASL ref grid ── */
+.ref-box{padding:10px 14px 16px;flex-shrink:0;}
+.ref-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.rc{
+  aspect-ratio:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+  color:var(--text3);transition:all .15s;font-family:var(--font-head);cursor:default;
+}
+.rc.lit{border-color:var(--green);background:rgba(110,255,168,.09);color:var(--green);}
+.rc.motion-lit{border-color:var(--pink);background:rgba(255,126,179,.09);color:var(--pink);}
+.rc.word-lit{border-color:var(--blue);background:rgba(79,200,255,.09);color:var(--blue);}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:16px;left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:var(--bg3);border:1px solid var(--border2);border-radius:8px;
+  padding:8px 14px;font-size:12px;opacity:0;transition:all .22s;
+  z-index:999;white-space:nowrap;pointer-events:none;max-width:90vw;
+  overflow:hidden;text-overflow:ellipsis;
+}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* new word flash */
 @keyframes wflash{from{color:var(--blue)}to{color:var(--text)}}
-.new-word{animation:wflash .6s forwards;}
+.new-word{animation:wflash .5s forwards;}
 </style>
 </head>
 <body>
@@ -118,10 +245,11 @@ canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX
   <div class="pills">
     <div class="pill"><div class="dot" id="camDot"></div><span id="camTxt">Camera off</span></div>
     <div class="pill"><div class="dot" id="apiDot"></div><span id="apiTxt">Backend —</span></div>
+    <div class="pill" id="hand2pill" style="display:none"><div class="dot on"></div><span>2 hands</span></div>
   </div>
 </header>
 
-<div class="layout">
+<div class="app">
 
   <!-- Camera side -->
   <div class="cam-side">
@@ -129,43 +257,52 @@ canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX
       <video id="video" playsinline autoplay muted></video>
       <canvas id="overlay"></canvas>
       <div class="start-screen" id="startScreen">
-        <div class="start-icon">✋</div>
-        <div class="start-h">SignSpeak</div>
-        <div class="start-p">MediaPipe tracks your hand landmarks and sends them to the FastAPI backend — no video, just 21 dots.</div>
+        <div class="start-icon">✋🤚</div>
+        <div class="start-h">SignSpeak v4</div>
+        <div class="start-p">MediaPipe tracks your hand landmarks and streams them to the FastAPI backend — no video sent, just 21 dots per hand.</div>
         <button class="start-btn" onclick="startCamera()">Enable Camera</button>
       </div>
     </div>
 
-    <!-- Detection strip with curl meters -->
     <div class="det-strip">
       <div class="big-letter none" id="bigLetter">—</div>
       <div class="sep"></div>
       <div class="det-info">
         <div class="det-label" id="detLabel">No hand detected</div>
         <div class="hold-track"><div class="hold-bar" id="holdBar"></div></div>
-        <div class="det-sub" id="detSub">Hold gesture still for 1 sec to confirm</div>
+        <div class="det-sub" id="detSub">Show hand · hold gesture to confirm</div>
       </div>
-      <!-- Live curl meters -->
-      <div class="curls" id="curlMeters">
-        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf0" style="height:0%"></div></div><div class="curl-label">I</div></div>
-        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf1" style="height:0%"></div></div><div class="curl-label">M</div></div>
-        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf2" style="height:0%"></div></div><div class="curl-label">R</div></div>
-        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf3" style="height:0%"></div></div><div class="curl-label">P</div></div>
-        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf4" style="height:0%;background:var(--amber)"></div></div><div class="curl-label">T</div></div>
+      <div class="curls">
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf0" style="height:0%;background:var(--green)"></div></div><div class="curl-lbl">I</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf1" style="height:0%;background:var(--green)"></div></div><div class="curl-lbl">M</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf2" style="height:0%;background:var(--green)"></div></div><div class="curl-lbl">R</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf3" style="height:0%;background:var(--green)"></div></div><div class="curl-lbl">P</div></div>
+        <div class="curl-col"><div class="curl-track"><div class="curl-fill" id="cf4" style="height:0%;background:var(--amber)"></div></div><div class="curl-lbl">T</div></div>
       </div>
+      <div class="model-badge" id="modelBadge">—</div>
     </div>
   </div>
 
   <!-- Right panel -->
   <div class="right">
 
-    <!-- Backend URL config -->
-    <div class="api-box">
+    <!-- Settings -->
+    <div class="settings-box">
       <div class="api-row">
-        <input class="api-url" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000"/>
+        <input class="api-url" id="apiUrl" value="https://sanzharx-signspeak-api.hf.space/"/>
         <button class="api-test" onclick="testBackend()">Test</button>
       </div>
-      <div class="api-status" id="apiStatus">Not connected — run: uvicorn main:app --reload --port 8000</div>
+      <div class="api-status" id="apiStatus">Tap Test to connect backend</div>
+      <div class="slider-row">
+        <span class="slider-lbl">Hold time</span>
+        <input type="range" id="holdSlider" min="400" max="2000" step="100" value="1000" oninput="updateHoldTime(this.value)">
+        <span class="slider-val" id="holdVal">1.0s</span>
+      </div>
+      <div class="toggle-row">
+        <button class="toggle-btn on" id="soundBtn" onclick="toggleSound()">🔔 Sound</button>
+        <button class="toggle-btn on" id="twoHandBtn" onclick="toggleTwoHand()">🤲 Two hands</button>
+        <button class="toggle-btn on" id="motionBtn" onclick="toggleMotion()">✋ J/Z/Q</button>
+      </div>
     </div>
 
     <!-- Word builder -->
@@ -184,14 +321,14 @@ canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX
       <div class="sec-label">Sentence</div>
       <div class="sentence" id="sentence"></div>
       <div class="sent-btns">
-        <button class="speak-btn" id="speakBtn" onclick="speak()" disabled>▶ Speak</button>
+        <button class="speak-btn" id="speakBtn" onclick="speakSentence()" disabled>▶ Speak</button>
         <button class="clr-btn" onclick="clearAll()">Clear all</button>
       </div>
     </div>
 
     <!-- ASL reference -->
     <div class="ref-box">
-      <div class="sec-label" style="margin-bottom:8px;">ASL reference</div>
+      <div class="sec-label" style="margin-bottom:7px;">ASL A–Z reference</div>
       <div class="ref-grid" id="refGrid"></div>
     </div>
 
@@ -204,17 +341,20 @@ canvas#overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 <script>
-// ── State ─────────────────────────────────────────────────────────────────────
-const HOLD_MS = 1000;
+
+// ── Config & state ─────────────────────────────────────────────────────────
+let HOLD_MS       = 1000;
+let soundEnabled  = true;
+let twoHandMode   = true;
+let motionEnabled = true;
+let backendOk     = false;
+let pendingCall   = false;
+
 let letterBuf = [], sentWords = [];
-let curSign = null, holdStart = null, holdDone = false, lastConfirmed = null;
-let mpHands = null, mpCamera = null;
-let frameTimer = null;       // throttle backend calls to ~10fps
-let backendOk = false;
+const holdState = {};
+let audioCtx = null;
 
-function apiBase(){ return document.getElementById('apiUrl').value.replace(/\/$/,''); }
-
-// ── Build reference grid ──────────────────────────────────────────────────────
+// ── ASL reference grid ─────────────────────────────────────────────────────
 const refGrid = document.getElementById('refGrid');
 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l => {
   const d = document.createElement('div');
@@ -222,259 +362,404 @@ const refGrid = document.getElementById('refGrid');
   refGrid.appendChild(d);
 });
 
-// ── Backend ───────────────────────────────────────────────────────────────────
+// ── Audio chime ────────────────────────────────────────────────────────────
+function initAudio(){
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playChime(type = 'letter'){
+  if (!soundEnabled) return;
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    if (type === 'word'){
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.07);
+    } else if (type === 'motion'){
+      osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+    } else {
+      osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+    }
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.20);
+  } catch(e){}
+}
+
+// ── Settings controls ──────────────────────────────────────────────────────
+function updateHoldTime(v){
+  HOLD_MS = parseInt(v);
+  document.getElementById('holdVal').textContent = (HOLD_MS/1000).toFixed(1)+'s';
+  document.getElementById('detSub').textContent =
+    `Hold gesture ${(HOLD_MS/1000).toFixed(1)}s to confirm`;
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  btn.classList.toggle('on', soundEnabled);
+  btn.textContent = soundEnabled ? '🔔 Sound' : '🔕 Sound';
+  if (soundEnabled) { initAudio(); playChime(); }
+}
+
+function toggleTwoHand(){
+  twoHandMode = !twoHandMode;
+  const btn = document.getElementById('twoHandBtn');
+  btn.classList.toggle('on', twoHandMode);
+  btn.textContent = twoHandMode ? '🤲 Two hands' : '✋ One hand';
+  document.getElementById('hand2pill').style.display = twoHandMode ? '' : 'none';
+}
+
+function toggleMotion(){
+  motionEnabled = !motionEnabled;
+  const btn = document.getElementById('motionBtn');
+  btn.classList.toggle('on', motionEnabled);
+  btn.textContent = motionEnabled ? '✋ J/Z/Q' : '— J/Z/Q';
+}
+
+// ── Backend ────────────────────────────────────────────────────────────────
+function apiBase(){ return document.getElementById('apiUrl').value.replace(/\/$/,''); }
+
 async function testBackend(){
   setApi('…','warn');
   document.getElementById('apiStatus').textContent = 'Testing…';
   try {
-    const r = await fetch(apiBase()+'/health', {signal: AbortSignal.timeout(3000)});
+    const r = await fetch(apiBase()+'/health', { signal: AbortSignal.timeout(5000) });
     const d = await r.json();
     backendOk = true;
-    setApi('Backend connected','on');
-    document.getElementById('apiStatus').textContent = 'Connected · '+d.model;
-    toast('Backend OK ✓');
-  } catch(e) {
+    setApi('Connected','on');
+    if (d.ml_loaded && d.scaler_loaded && d.encoder_loaded){
+      document.getElementById('apiStatus').textContent = '✓ ML ensemble + scaler active (v4)';
+      toast('Backend + ML ensemble ✓');
+    } else if (d.ml_loaded) {
+      document.getElementById('apiStatus').textContent = '⚠ ML loaded · missing scaler — retrain';
+      toast('Backend OK · re-run train_model.py');
+    } else {
+      document.getElementById('apiStatus').textContent = '⚠ Rules only — run train_model.py';
+      toast('Backend OK · no ML model');
+    }
+  } catch(e){
     backendOk = false;
-    setApi('Backend offline','');
-    document.getElementById('apiStatus').textContent = 'Cannot reach backend — is uvicorn running?';
-    toast('Backend unreachable');
+    setApi('Offline','');
+    document.getElementById('apiStatus').textContent = 'Unreachable — check backend URL';
+    toast('Cannot reach backend');
   }
 }
 
-async function classifyLandmarks(landmarks){
-  if (!backendOk) return null;
+async function callBackend(hands){
+  if (!backendOk || pendingCall) return null;
+  pendingCall = true;
   try {
-    const res = await fetch(apiBase()+'/classify', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        landmarks: landmarks.map(l => ({x:l.x, y:l.y, z:l.z})),
-        handedness: 'Right'
-      }),
-      signal: AbortSignal.timeout(500)
+    const endpoint = (twoHandMode && hands.length > 1) ? '/classify2' : '/classify';
+    const body = (twoHandMode && hands.length > 1)
+      ? { hands: hands.map(h => ({ landmarks: h.lms, handedness: h.side })) }
+      : { landmarks: hands[0].lms, handedness: hands[0].side };
+
+    const res = await fetch(apiBase()+endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(500),
     });
     return await res.json();
-  } catch(e){ return null; }
+  } catch(e){ return null; } finally { pendingCall = false; }
 }
 
-// ── Camera + MediaPipe ────────────────────────────────────────────────────────
+// ── Camera + MediaPipe ─────────────────────────────────────────────────────
 async function startCamera(){
   document.getElementById('startScreen').classList.add('gone');
   setStatus('cam','Initializing…','warn');
   try {
-    mpHands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-    mpHands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.7, minTrackingConfidence:0.6 });
-    mpHands.onResults(onFrame);
+    const hands = new Hands({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.70,
+      minTrackingConfidence: 0.60,
+    });
+    hands.onResults(onFrame);
 
     const video = document.getElementById('video');
-    mpCamera = new Camera(video, {
-      onFrame: async () => { await mpHands.send({ image: video }); },
-      width:640, height:480
+    const cam = new Camera(video, {
+      onFrame: async () => { await hands.send({ image: video }); },
+      width: 640, height: 480
     });
-    await mpCamera.start();
+    await cam.start();
     video.classList.add('on');
-    setStatus('cam','Camera active','on');
 
-    // auto-test backend
-    await testBackend();
-
-    // size overlay
     const ov = document.getElementById('overlay');
     ov.width = 640; ov.height = 480;
-    ov.style.width='100%'; ov.style.height='100%';
+    ov.style.width = '100%'; ov.style.height = '100%';
+
+    setStatus('cam','Camera active','on');
+    initAudio();
+    await testBackend();
   } catch(e){
     document.getElementById('startScreen').classList.remove('gone');
     toast('Camera error: '+e.message);
   }
 }
 
-// ── Per-frame handler ─────────────────────────────────────────────────────────
-let pendingClassify = false;
-
+// ── Per-frame handler ──────────────────────────────────────────────────────
 function onFrame(results){
   const canvas = document.getElementById('overlay');
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (!results.multiHandLandmarks?.length){
-    resetHold();
+  const detected = results.multiHandLandmarks || [];
+  const handedness = results.multiHandedness || [];
+
+  if (!detected.length){
+    resetAllHolds();
     updateDet(null);
     clearCurls();
     return;
   }
 
-  const lms = results.multiHandLandmarks[0];
+  const limit = twoHandMode ? 2 : 1;
+  const hands = [];
 
-  // ── Draw landmarks (like the screenshot) ──────────────────────────────────
-  // Connections in pale green
-  drawConnectors(ctx, lms, HAND_CONNECTIONS, { color:'rgba(110,255,168,0.4)', lineWidth:2 });
+  detected.slice(0, limit).forEach((lms, i) => {
+    const side = handedness[i]?.label || 'Right';
+    drawHand(ctx, canvas, lms, side, i);
+    hands.push({ lms: lms.map(l => ({ x:l.x, y:l.y, z:l.z })), side });
+  });
 
-  // Joints: white circles, fingertips bigger + brighter
-  const TIPS = new Set([4,8,12,16,20]);
+  document.getElementById('hand2pill').style.display =
+    (twoHandMode && hands.length > 1) ? '' : 'none';
+
+  callBackend(hands).then(resp => {
+    if (!resp) return;
+    const primary = resp.results ? resp.results[0] : resp;
+    if (!primary) return;
+
+    if (primary.finger_curls) updateCurls(primary.finger_curls, primary.thumb_out);
+    updateModelBadge(primary.model_type);
+
+    if (!motionEnabled && primary.model_type === 'motion') {
+      updateDet(null); return;
+    }
+
+    updateDet(primary);
+    if (primary.confidence > 0) processHold(primary, 'primary');
+    else resetHold('primary');
+
+    if (resp.results?.length > 1){
+      const secondary = resp.results[1];
+      if (secondary.confidence > 0) processHold(secondary, 'secondary');
+      else resetHold('secondary');
+    }
+
+    if (resp.combined) toast('Two-hand sign: '+resp.combined);
+  });
+}
+
+// ── Hand drawing ────────────────────────────────────────────────────────────
+const TIPS = new Set([4,8,12,16,20]);
+const COLORS = ['#6effa8', '#4fc8ff'];
+
+function drawHand(ctx, canvas, lms, side, handIndex){
+  const color = COLORS[handIndex % 2];
+  const colorFade = handIndex === 0
+    ? 'rgba(110,255,168,0.35)' : 'rgba(79,200,255,0.35)';
+
+  drawConnectors(ctx, lms, HAND_CONNECTIONS, { color: colorFade, lineWidth: 2 });
+
   lms.forEach((pt, i) => {
     const x = pt.x * canvas.width;
     const y = pt.y * canvas.height;
     ctx.beginPath();
-    ctx.arc(x, y, TIPS.has(i) ? 7 : 5, 0, Math.PI*2);
-    ctx.fillStyle = TIPS.has(i) ? '#6effa8' : 'rgba(110,255,168,0.75)';
+    ctx.arc(x, y, TIPS.has(i) ? 7 : 4.5, 0, Math.PI*2);
+    ctx.fillStyle = TIPS.has(i) ? color : color+'bb';
     ctx.fill();
-    // thin white border
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
     ctx.stroke();
   });
 
-  // ── Send to backend every ~100ms (10fps) ──────────────────────────────────
-  if (!pendingClassify){
-    pendingClassify = true;
-    classifyLandmarks(lms).then(result => {
-      pendingClassify = false;
-      if (!result) { updateDet(null); clearCurls(); return; }
-      updateCurls(result.finger_curls, result.thumb_out);
-      updateDet(result);
-      if (result.confidence > 0) processHold(result);
-      else resetHold();
-    });
-  }
+  const wx = lms[0].x * canvas.width;
+  const wy = lms[0].y * canvas.height;
+  ctx.font = '500 11px DM Mono, monospace';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.fillText(side, wx, wy + 16);
 }
 
-// ── Hold logic ────────────────────────────────────────────────────────────────
-function processHold(result){
+// ── Hold logic ─────────────────────────────────────────────────────────────
+function processHold(result, slot){
   const sign = result.sign;
-  if (sign === lastConfirmed){ resetHold(); return; }
-  if (curSign !== sign){ curSign = sign; holdStart = Date.now(); holdDone = false; }
-  if (!holdDone){
-    const pct = Math.min(100, ((Date.now()-holdStart)/HOLD_MS)*100);
-    document.getElementById('holdBar').style.width = pct+'%';
-    if (pct >= 100){ holdDone = true; confirmSign(result); }
+  if (!holdState[slot]) holdState[slot] = { sign:null, start:null, done:false };
+  const hs = holdState[slot];
+
+  if (sign === hs.lastConfirmed){ resetHold(slot); return; }
+  if (hs.sign !== sign){ hs.sign = sign; hs.start = Date.now(); hs.done = false; }
+
+  if (!hs.done){
+    const pct = Math.min(100, ((Date.now() - hs.start) / HOLD_MS) * 100);
+    if (slot === 'primary') document.getElementById('holdBar').style.width = pct+'%';
+    if (pct >= 100){ hs.done = true; confirmSign(result, slot); }
   }
 }
 
-function resetHold(){
-  curSign = null; holdStart = null; holdDone = false;
-  document.getElementById('holdBar').style.width='0%';
+function resetHold(slot){
+  if (!holdState[slot]) return;
+  holdState[slot] = { sign:null, start:null, done:false };
+  if (slot === 'primary') document.getElementById('holdBar').style.width = '0%';
 }
 
-function confirmSign(result){
-  lastConfirmed = result.sign;
-  setTimeout(()=>{ lastConfirmed = null; }, 1500);
-  document.getElementById('holdBar').style.width='0%';
+function resetAllHolds(){
+  Object.keys(holdState).forEach(resetHold);
+  document.getElementById('holdBar').style.width = '0%';
+}
+
+function confirmSign(result, slot){
+  const hs = holdState[slot];
+  hs.lastConfirmed = result.sign;
+  setTimeout(() => { if(hs) hs.lastConfirmed = null; }, 1500);
+  if (slot === 'primary') document.getElementById('holdBar').style.width = '0%';
+
+  const chimeType = result.is_word ? 'word' : (result.model_type === 'motion' ? 'motion' : 'letter');
+  playChime(chimeType);
+
+  const bl = document.getElementById('bigLetter');
+  bl.classList.add('pop');
+  setTimeout(() => bl.classList.remove('pop'), 120);
 
   if (result.is_word){
     addWord(result.sign);
-    flashRef('rc-'+result.sign.replace(/\s/g,'-'), true);
+    flashRef('rc-'+result.sign.slice(0,1), 'word');
     toast('Word: '+result.sign);
   } else {
     letterBuf.push(result.sign);
     renderWord();
-    flashRef('rc-'+result.sign, false);
+    const refClass = result.model_type === 'motion' ? 'motion' : 'letter';
+    flashRef('rc-'+result.sign, refClass);
     toast('Letter: '+result.sign);
   }
 }
 
-// ── UI updaters ───────────────────────────────────────────────────────────────
+// ── UI updaters ────────────────────────────────────────────────────────────
 function updateDet(result){
-  const el = document.getElementById('bigLetter');
+  const el  = document.getElementById('bigLetter');
   const lbl = document.getElementById('detLabel');
   const sub = document.getElementById('detSub');
+
   if (!result){
     el.textContent='—'; el.className='big-letter none';
     lbl.textContent='No hand detected';
     sub.textContent='Show your hand to the camera';
     return;
   }
-  if (result.sign==='?'){
+  if (result.sign === '?'){
     el.textContent='?'; el.className='big-letter none';
-    lbl.textContent=result.hint;
-    sub.textContent='Try a clear ASL shape';
+    lbl.textContent = result.hint;
+    sub.textContent = 'Try a clear ASL shape';
     return;
   }
-  el.className = result.is_word ? 'big-letter word' : 'big-letter';
+  const mtype = result.model_type;
+  el.className = result.is_word ? 'big-letter word'
+               : mtype === 'motion' ? 'big-letter motion'
+               : 'big-letter';
   el.textContent = result.is_word ? result.sign.split(' ')[0] : result.sign;
   lbl.textContent = result.hint;
-  sub.textContent = `Confidence ${result.confidence}% · Hold 1 sec to confirm`;
+  sub.textContent = `Confidence ${result.confidence}% · Hold ${(HOLD_MS/1000).toFixed(1)}s to confirm`;
 }
 
 function updateCurls(curls, thumbOut){
-  curls.forEach((v, i) => {
-    document.getElementById('cf'+i).style.height = Math.round(v*100)+'%';
-  });
-  document.getElementById('cf4').style.height = thumbOut ? '20%' : '80%';
+  curls.forEach((v,i) => { document.getElementById('cf'+i).style.height = Math.round(v*100)+'%'; });
+  document.getElementById('cf4').style.height = thumbOut ? '15%' : '85%';
 }
 
 function clearCurls(){
   [0,1,2,3,4].forEach(i => document.getElementById('cf'+i).style.height='0%');
 }
 
-function flashRef(id, isWord){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add(isWord ? 'word-lit' : 'lit');
-  setTimeout(() => el.classList.remove('lit','word-lit'), 700);
+function updateModelBadge(type){
+  const el = document.getElementById('modelBadge');
+  el.className = 'model-badge ' + (type||'');
+  el.textContent = type === 'ml' ? 'ML' : type === 'motion' ? 'motion' : type === 'rules' ? 'rules' : '—';
 }
 
-// ── Word / sentence builders ──────────────────────────────────────────────────
+function flashRef(id, type){
+  const el = document.getElementById(id);
+  if (!el) return;
+  const cls = type === 'word' ? 'word-lit' : type === 'motion' ? 'motion-lit' : 'lit';
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove('lit','motion-lit','word-lit'), 750);
+}
+
+// ── Word / sentence ────────────────────────────────────────────────────────
 function renderWord(){
   const el = document.getElementById('wordDisplay');
-  if (!letterBuf.length){ el.textContent='Spell with gestures…'; el.className='word-display empty'; }
-  else { el.textContent=letterBuf.join(''); el.className='word-display'; }
+  if (!letterBuf.length){
+    el.textContent = 'Spell with gestures…';
+    el.className = 'word-display empty';
+  } else {
+    el.textContent = letterBuf.join('');
+    el.className = 'word-display';
+  }
 }
 
 function confirmWord(){
   if (!letterBuf.length) return;
   addWord(letterBuf.join(''));
-  letterBuf=[]; renderWord();
+  letterBuf = []; renderWord();
+  playChime('word');
 }
-
 function backspace(){ letterBuf.pop(); renderWord(); }
-function clearWord(){ letterBuf=[]; renderWord(); }
+function clearWord(){ letterBuf = []; renderWord(); }
 
 function addWord(word){
   sentWords.push(word);
   const sent = document.getElementById('sentence');
   const span = document.createElement('span');
-  span.className='new-word';
-  span.textContent=(sent.textContent?' ':'')+word;
+  span.className = 'new-word';
+  span.textContent = (sent.textContent ? ' ' : '') + word;
   sent.appendChild(span);
-  document.getElementById('speakBtn').disabled=false;
+  document.getElementById('speakBtn').disabled = false;
 }
 
 function clearAll(){
-  sentWords=[]; letterBuf=[];
+  sentWords = []; letterBuf = [];
   renderWord();
-  document.getElementById('sentence').textContent='';
-  document.getElementById('speakBtn').disabled=true;
+  document.getElementById('sentence').textContent = '';
+  document.getElementById('speakBtn').disabled = true;
 }
 
-function speak(){
-  const text=sentWords.join(' ');
-  if (!text) return;
-  if ('speechSynthesis' in window){
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=0.88; u.pitch=1.05;
-    speechSynthesis.speak(u);
-    toast('Speaking: "'+text+'"');
-  }
+function speakSentence(){
+  const text = sentWords.join(' ');
+  if (!text || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.88; u.pitch = 1.05;
+  speechSynthesis.speak(u);
+  toast('Speaking: "'+text+'"');
 }
 
-// ── Status helpers ────────────────────────────────────────────────────────────
+// ── Status helpers ─────────────────────────────────────────────────────────
 function setStatus(which, text, state){
-  if (which==='cam'){
-    document.getElementById('camDot').className='dot '+(state||'');
-    document.getElementById('camTxt').textContent=text;
+  if (which === 'cam'){
+    document.getElementById('camDot').className = 'dot '+(state||'');
+    document.getElementById('camTxt').textContent = text;
   }
 }
 function setApi(text, state){
-  document.getElementById('apiDot').className='dot '+(state||'');
-  document.getElementById('apiTxt').textContent=text;
+  document.getElementById('apiDot').className = 'dot '+(state||'');
+  document.getElementById('apiTxt').textContent = text;
 }
-
 function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(t._t);
-  t._t=setTimeout(()=>t.classList.remove('show'),2200);
+  t._t = setTimeout(() => t.classList.remove('show'), 2400);
 }
 </script>
 </body>
